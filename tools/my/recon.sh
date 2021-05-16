@@ -73,17 +73,20 @@ echo "P_httprobe completed" | tee -a $path/passive/status
 
 #--------------------active--------------------#
 A_SUBDOMAIN(){
-#-----------------sub-bruteforce---------------#
-altdns -i $path/target -w ~/tools/my/words/my/subdomain/my1000.txt -o $path/active/altbrutelist
+#------------altdns-sub-bruteforce-------------#
+altdns -i $path/target -w ~/tools/my/words/my/subdomain/my1000.txt -o $path/active/altlist
+cat $path/active/altlist | tee -a $path/active/altbrutelist
+altdns -i $path/target -w $path/wordlist/tarwordlist -o $path/active/altlist
+cat $path/active/altlist | tee -a $path/active/altbrutelist
+altdns -i $path/allsubdomain -w ~/tools/my/words/my/subdomain/my1000.txt -o $path/active/altlist
+cat $path/active/altlist | tee -a $path/active/altbrutelist
+sort -u $path/active/altbrutelist -o $path/active/altbrutelist
+echo "A_altdns completed" | tee -a $path/passive/status
+
+#-----------massdns--------------------------#
 massdns -r ~/tools/massdns/lists/resolvers.txt -q -t A -o S $path/active/altbrutelist | tee -a $path/active/cname | awk -F' ' '{print $1}' | tee -a $path/active/brutdomain 
 ~/tools/my/./cm.sh $path/allsubdomain $path/active/brutdomain | tee -a $path/allsubdomain | tee -a $path/active/allsubdomain
-echo "A_sub-bruteforce completed" | tee -a $path/passive/status
-
-#------------altdns-------------------#
-altdns -i $path/allsubdomain -w $path/wordlist/tarwordlist -o $path/active/altdomain
-massdns -r ~/tools/massdns/lists/resolvers.txt -q -t A -o S $path/active/altdomain | tee -a $path/active/cname | awk -F' ' '{print $1}' | tee -a $path/active/brutdomain 
-~/tools/my/./cm.sh $path/allsubdomain $path/active/brutdomain | tee -a $path/allsubdomain | tee -a $path/active/allsubdomain
-echo "A_altdns completed" | tee -a $path/passive/status
+echo "A_massdns completed" | tee -a $path/passive/status
 
 sed -i 's/^*\.//; s/\/$//' $path/active/allsubdomain
 ~/tools/my/./rmwww.sh $path/active/allsubdomain
@@ -124,13 +127,13 @@ echo "active roboturl completed" | tee -a $path/active/status
 cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/'$domain.*'//; s/https*:\/\/\**//g; s/\./\n/g; s/[^[:alnum:]\_\-]/\n/g'  | sort -u | tee -a $path/active/subwordlist | tee -a $path/wordlist/tarwordlist
 cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\//\n/g; s/\?.*//g; s/\+//g; s/[^[:alnum:]\_\-]/\n/g' | grep -av '\.' | sort -u | tee -a $path/active/dirwordlist | tee -a $path/wordlist/tarwordlist
 cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\?.*//; s/[^[:alnum:]\.\_\-]/\n/g' | awk -F'/' '{print $NF}' | grep -a '.\+\.' | sort -u | tee -a $path/active/filewordlist_temp 
-cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | grep -oa '\?.*' | grep -Eao "\?[a-zA-Z0-9]*[^\=]+|\&[a-zA-Z0-9]*[^\=]+" | sed 's/\+//g; s/[^[:alnum:]\?\&\_\-]/\n/g' | sort -u | tee -a $path/active/parameterwordlist | tee -a $path/wordlist/tarwordlist
+cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | grep -oa '\?.*' | grep -Eao "\?[a-zA-Z0-9]*[^\=]+|\&[a-zA-Z0-9]*[^\=]+" | sed 's/\+//g; s/[^[:alnum:]\?\&\_\-]/\n/g' | sort -u | tee -a $path/active/parameterwordlist
 ~/tools/my/./cm.sh $path/allsubdomain $path/active/filewordlist_temp | tee -a $path/passive/filewordlist 
 rm $path/active/filewordlist_temp
 echo "active wordlists completed" | tee -a $path/active/status
 
 cat $path/active/upsubdomains | ~/tools/my/./jstool.js -curl | tok | sort -u | tee -a $path/wordlist/A_tarallwords
-echo "passive tarallwords completed" | tee -a $path/active/status
+echo "active tarallwords completed" | tee -a $path/active/status
 
 ~/tools/my/./cm.sh ~/tools/my/files/filterwords $path/wordlist/A_tarallwords | tee -a $path/wordlist/A_tarwordlist | tee -a $path/wordlist/A_subwordlist
 
