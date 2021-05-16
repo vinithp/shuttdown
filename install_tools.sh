@@ -5,7 +5,5 @@ go get -u github.com/tomnomnom/assetfinder
 cd ~tools
 git clone https://github.com/gwen001/github-search.git
 sudo apt install jq
-<<<<<<< HEAD
-=======
+sudo apt install python3-pip
 pip3 install typer
->>>>>>> kl

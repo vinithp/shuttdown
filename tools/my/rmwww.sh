@@ -1,16 +1,4 @@
 #!/bin/bash
-<<<<<<< HEAD
-while read i
-do 
-cat $1 | grep -E ^$i 
-there=$?
-if [ $there == 0 ]
-then
-sed -i 's/www\.'$i'//' $1
-fi
-
-done < <(cat $1 | grep -E ^www |sed 's/^www\.//')
-=======
 
 #while read i
 #do 
@@ -24,4 +12,3 @@ done < <(cat $1 | grep -E ^www |sed 's/^www\.//')
 #done < <(cat $1 | grep -Ea ^www |sed 's/^www\.//')
 
 cat $1 | grep -Ea ^www | sed 's/^www\.//' | xargs -I{} grep -a {} $1 | sed 's/^/www\./' | xargs -I{} sed -i '/{}/d' $1 
->>>>>>> kl
