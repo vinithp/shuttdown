@@ -11,7 +11,7 @@ then
 grep -Eao "(https*://)?([a-zA-Z0-9\_\-]*\.*)([a-zA-Z0-9\_-]{2,}\.(([a-z]{4})|([a-z]{3})|([a-z]{2})))" | sort -u
 elif [ $1 == "domain-path" ]
 then
-grep -Eao "(https*://)?[a-zA-Z0-9\.-]*[a-zA-Z0-9-]{3,}\.[a-zA-Z]{2,3}\/[^\'\"\<\>\;\,\ \: ]+" | sort -u
+grep -Eao "(https*://)?([a-zA-Z0-9\_\-]*\.*)([a-zA-Z0-9\_-]{2,}\.(([a-z]{4})|([a-z]{3})|([a-z]{2})))*\/[^\'\"\<\>\;\,\ \: ]+" | sort -u
 elif [ $1 == "path" ]
 then
 grep -Eao "/[^\<\>\;\,\ \: ]*" | grep -vE '^\W*[a-zA-Z0-9]{,1}\W*$' | sort -u
@@ -27,7 +27,7 @@ then
 cat $2 | grep -Ewao "(https*://)?([a-zA-Z0-9\_\-]*\.*)([a-zA-Z0-9\_-]{2,}\.(([a-z]{4})|([a-z]{3})|([a-z]{2})))" | sort -u
 elif [ $1 == "domain-path" ]
 then
-cat $2 | grep -Eao "(https*://)?[a-zA-Z0-9\.-]*[a-zA-Z0-9-]{3,}\.[a-zA-Z]{2,3}[^\'\"\<\>\;\,\ \: ]+" | sort -u
+cat $2 | grep -Eao "(https*://)?([a-zA-Z0-9\_\-]*\.*)([a-zA-Z0-9\_-]{2,}\.(([a-z]{4})|([a-z]{3})|([a-z]{2})))*\/[^\'\"\<\>\;\,\ \: ]+" | sort -u
 elif [ $1 == "path" ]
 then
 cat $2 | grep -Eao "/[^\<\>\;\,\ \: ]*" | grep -vE '^\W*[a-zA-Z0-9]{,1}\W*$' | sort -u
