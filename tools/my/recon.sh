@@ -156,7 +156,7 @@ echo "passive sort gaurl completed" | tee -a $path/passive/status
 
 #----------spider-------------------#
 #cat $path/passive/allsubdomain | sed 's/^/https:\/\//' | tee -a $path/passive/spiderinput
-gospider -S $path/passive/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | tee -a $path/passive/spideroutput
+gospider -S $path/passive/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | sed 's/\[.*\] \- //' | tee -a $path/passive/spideroutput
 sort -u $path/passive/spideroutput -o $path/passive/spideroutput
 echo "passive spider completed" | tee -a $path/passive/status
 
