@@ -111,7 +111,7 @@ cat $path/active/upsubdomains | tee -a $path/upsubdomains
 echo "A_httprobe completed" | tee -a $path/active/status
 
 #----------spider-------------------#
-gospider -S $path/active/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | tee -a $path/active/spideroutput
+gospider -S $path/active/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | tee -a $path/active/spideralloutput | grep -a $domain | tee -a $path/active/spideroutput
 sort -u $path/active/spideroutput -o $path/active/spideroutput
 echo "active spider completed" | tee -a $path/active/status
 
@@ -125,8 +125,8 @@ echo "active roboturl completed" | tee -a $path/active/status
 
 #----------wordlist-----------------#
 cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/'$domain.*'//; s/https*:\/\/\**//g; s/\./\n/g; s/[^[:alnum:]\_\-]/\n/g'  | sort -u | tee -a $path/active/subwordlist | tee -a $path/wordlist/tarwordlist
-cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\//\n/g; s/\?.*//g; s/\+//g; s/[^[:alnum:]\_\-]/\n/g' | grep -av '\.' | sort -u | tee -a $path/active/dirwordlist | tee -a $path/wordlist/tarwordlist
-cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\?.*//; s/[^[:alnum:]\.\_\-]/\n/g' | awk -F'/' '{print $NF}' | grep -a '.\+\.' | sort -u | tee -a $path/active/filewordlist_temp 
+cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\//\n/g; s/\?.*//g; s/\+//g; s/[^[:alnum:]\_\.\-]/\n/g' | grep -Eav '\.|[a-zA-Z0-9]+' | sort -u | tee -a $path/active/dirwordlist | tee -a $path/wordlist/tarwordlist
+cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | sed 's/https*:\/\/.*'$domain'//g; s/\?.*//; s/[^[:alnum:]\.\_\-]/\n/g' | awk -F'/' '{print $NF}' | grep -a '.\+\.' | grep -Eva '\.[a-zA-Z0-9\_\-]{7,}$' | grep -Eva "\.com|\.net|\.org" | grep -Eva "\.$" | grep -Eva "\.[0-9]+$" | sort -u | tee -a $path/active/filewordlist_temp 
 cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput | grep -oa '\?.*' | grep -Eao "\?[a-zA-Z0-9]*[^\=]+|\&[a-zA-Z0-9]*[^\=]+" | sed 's/\+//g; s/[^[:alnum:]\?\&\_\-]/\n/g' | sort -u | tee -a $path/active/parameterwordlist
 ~/tools/my/./cm.sh $path/allsubdomain $path/active/filewordlist_temp | tee -a $path/passive/filewordlist 
 rm $path/active/filewordlist_temp
@@ -156,7 +156,7 @@ echo "passive sort gaurl completed" | tee -a $path/passive/status
 
 #----------spider-------------------#
 #cat $path/passive/allsubdomain | sed 's/^/https:\/\//' | tee -a $path/passive/spiderinput
-gospider -S $path/passive/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | sed 's/\[.*\] \- //' | tee -a $path/passive/spideroutput
+gospider -S $path/passive/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sed 's/\[.*\] \- //' | tee -a $path/passive/sipderalloutput | grep -a $domain | tee -a $path/passive/spideroutput
 sort -u $path/passive/spideroutput -o $path/passive/spideroutput
 echo "passive spider completed" | tee -a $path/passive/status
 

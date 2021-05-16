@@ -17,7 +17,7 @@ then
 grep -Eao "/[^\<\>\;\,\ \: ]*" | grep -vE '^\W*[a-zA-Z0-9]{,1}\W*$' | sort -u
 elif [ $1 == "files" ]
 then
-grep -Eao "[a-zA-Z0-9\_\/\.-]*\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml|config|conf)" | sort -u
+grep -Eiao "[a-zA-Z0-9\_\/\.-]*\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml|config|conf|jpg|png|woff|woff2|php|svg|gif|css|htm|pdf|mp4|webm)" | sort -u
 fi
 
 else
@@ -33,7 +33,7 @@ then
 cat $2 | grep -Eao "/[^\<\>\;\,\ \: ]*" | grep -vE '^\W*[a-zA-Z0-9]{,1}\W*$' | sort -u
 elif [ $1 == "files" ]
 then
-cat $2 | grep -Eao "[a-zA-Z0-9\_\/\.-]*\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml|config|conf)" | sort -u
+cat $2 | grep -Eiao "[a-zA-Z0-9\_\/\.-]*\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml|config|conf|jpg|png|woff|woff2|php|svg|gif|css|htm|pdf|mp4|webm)" | sort -u
 fi
 
 fi
