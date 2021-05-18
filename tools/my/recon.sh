@@ -20,19 +20,19 @@ asn=$( ( echo $asn | xargs -d , -n1 | sort -u | xargs ) | sed 's/\ /\,/g' )
 P_SUBDOMAIN(){
 #-------------AMASS-------------------#
 amass enum -config ~/.config/amass/jk/config.ini -passive -asn $asn -d $domain -nocolor | tee -a $path/passive/allsubdomain
-echo "P_amass completed" | tee -a $path/passive/status
+echo "P_amass completed" | tee -a $path/status
 
 #------------subfinder----------------#
 subfinder -d $domain -silent | tee -a $path/passive/allsubdomain
-echo "P_subfinder completed" | tee -a $path/passive/status
+echo "P_subfinder completed" | tee -a $path/status
 
 #------------assetfinder--------------# 
 assetfinder -subs-only $domain | tee -a $path/passive/allsubdomain
-echo "P_assetfinder completed" | tee -a $path/passive/status
+echo "P_assetfinder completed" | tee -a $path/status
 
 #------------github-subdomains--------#
 ~/tools/github-search/github-subdomains.py -d $domain | tee -a $path/passive/allsubdomain
-echo "P_github-subdomains completed" | tee -a $path/passive/status
+echo "P_github-subdomains completed" | tee -a $path/status
 
 #------------shosubgo-----------------#
 #go run ~/tools/shodubgo/main.go -d $domain -s aEkJGyRcckezV07ExZqpkDWb5uf7OOKw | tee -a $path/passive/allsubdomain
@@ -40,18 +40,18 @@ echo "P_github-subdomains completed" | tee -a $path/passive/status
 
 #------------bufferover---------------#
 curl http://tls.bufferover.run/dns?q=$domain | jq '.Results' | awk -F',' '(NF>1) {print $3}' | sed 's/"//g;s/*\.//g' | sort -u | tee -a $path/passive/allsubdomain
-echo "P_bufferover completed" | tee -a $path/passive/status
+echo "P_bufferover completed" | tee -a $path/status
 
 #--------------sorting----------------#
 sed -i 's/^\*\.//; s/\/$//' $path/passive/allsubdomain
 ~/tools/my/./rmwww.sh $path/passive/allsubdomain
 sort -u $path/passive/allsubdomain -o $path/passive/allsubdomain
 sed -i -n "/\/$domain\|\.$domain\|^ *$domain/p" $path/passive/allsubdomain
-echo "P_sorting completed" | tee -a $path/passive/status
+echo "P_sorting completed" | tee -a $path/status
 
 #-------calling amass once again------#
 cat $path/passive/allsubdomain | xargs -I {} amass enum -config ~/.config/amass/jk/config.ini -passive -asn $asn -d {} -nocolor | tee -a $path/passive/amassagainsubdomain
-echo "P_amassagain completed" | tee -a $path/passive/status
+echo "P_amassagain completed" | tee -a $path/status
 
 sort -u $path/passive/amassagainsubdomain -o $path/passive/amassagainsubdomain
 sed -i -n "/\/$domain\|\.$domain\|^ *$domain/p" $path/passive/amassagainsubdomain
@@ -60,39 +60,39 @@ sed -i -n "/\/$domain\|\.$domain\|^ *$domain/p" $path/passive/amassagainsubdomai
 ~/tools/my/./rmwww.sh $path/allsubdomain
 sed -i '/^[[:space:]]*$/d; s/\.$//' $path/passive/allsubdomain
 cp $path/passive/allsubdomain $path/allsubdomain
-echo "P_processing_amassagain completed" | tee -a $path/passive/status
+echo "P_processing_amassagain completed" | tee -a $path/status
 
 #------------massdns--httprobe-----------------#
 cat $path/passive/allsubdomain | httprobe | sort -u | tee -a $path/passive/upsubdomains
 ~/tools/my/./rmhttp.sh $path/passive/upsubdomains
 sed -i '/^[[:space:]]*$/d' $path/passive/upsubdomains
 cat $path/passive/upsubdomains | tee -a $path/upsubdomains
-echo "P_httprobe completed" | tee -a $path/passive/status
+echo "P_httprobe completed" | tee -a $path/status
 }
 
 #--------------------active--------------------#
 A_SUBDOMAIN(){
 #------------altdns-sub-bruteforce-------------#
 altdns -i $path/target -w ~/tools/my/words/my/subdomain/my1000.txt -o $path/active/altlist
-cat $path/active/altlist | tee -a $path/active/altbrutelist
+cat $path/active/altlist | grep -xavf $path/active/altbrutelist | tee -a $path/active/altbrutelist
 altdns -i $path/target -w $path/wordlist/tarwordlist -o $path/active/altlist
-cat $path/active/altlist | tee -a $path/active/altbrutelist
-altdns -i $path/allsubdomain -w ~/tools/my/words/my/subdomain/my1000.txt -o $path/active/altlist
-cat $path/active/altlist | tee -a $path/active/altbrutelist
-sort -u $path/active/altbrutelist -o $path/active/altbrutelist
-echo "A_altdns completed" | tee -a $path/passive/status
+cat $path/active/altlist | grep -xavf $path/active/altbrutelist | tee -a $path/active/altbrutelist
+altdns -i $path/allsubdomain -w ~/tools/my/words/my/subdomain/my1000-1.txt -o $path/active/altlist
+cat $path/active/altlist | grep -xavf $path/active/altbrutelist | tee -a $path/active/altbrutelist
+altdns -i $path/allsubdomain -w ~/tools/my/words/my/subdomain/my1000-2.txt -o $path/active/altlist
+cat $path/active/altlist | grep -xavf $path/active/altbrutelist | tee -a $path/active/altbrutelist
+echo "A_altdns completed" | tee -a $path/active/status
 
 #-----------massdns--------------------------#
-massdns -r ~/tools/massdns/lists/resolvers.txt -q -t A -o S $path/active/altbrutelist | tee -a $path/active/cname | awk -F' ' '{print $1}' | tee -a $path/active/brutdomain | sed 's/\.$//' | grep -xavf $path/allsubdomain | tee -a $path/active/allsubdomain 
-echo "A_massdns completed" | tee -a $path/passive/status
+massdns -r ~/tools/massdns/lists/resolvers.txt -q -t A -o S $path/active/altbrutelist | tee -a $path/active/cname | awk -F' ' '{print $1}' | tee -a $path/active/brutdomain | sed 's/\.$//; s/^*\.//; s/\/$//' | grep -xavf $path/allsubdomain | tee -a $path/active/allsubdomain 
+echo "A_massdns completed" | tee -a $path/status
 
-sed -i 's/^*\.//; s/\/$//' $path/active/allsubdomain
 ~/tools/my/./rmwww.sh $path/active/allsubdomain
 
 #-------amass------#
 cat $path/active/allsubdomain | xargs -I {} amass enum -config ~/.config/amass/jk/config.ini -passive -asn $asn -d {} -nocolor | sed 's/\.$//' | tee -a $path/active/amassagainsubdomain
 cat $path/active/allsubdomain | xargs -I {} amass enum -brute -config ~/.config/amass/jk/config.ini -asn $asn -d {} -nocolor | sed 's/\.$//' | tee -a $path/active/amassagainsubdomain
-echo "A_amass completed" | tee -a $path/passive/status
+echo "A_amass completed" | tee -a $path/status
 
 sort -u $path/active/amassagainsubdomain -o $path/active/amassagainsubdomain
 ~/tools/my/./cm.sh $path/allsubdomain $path/active/amassagainsubdomain | tee -a $path/active/allsubdomain
@@ -104,58 +104,47 @@ cat $path/active/allsubdomain | tee -a $path/allsubdomain
 #------------httprobe----------------#
 cat $path/active/allsubdomain | httprobe | sort -u | tee -a $path/active/upsubdomains
 ~/tools/my/./rmhttp.sh $path/active/upsubdomains
-sed -i '/^[[:space:]]*$/d' $path/active/upsubdomains
 cat $path/active/upsubdomains | tee -a $path/upsubdomains
-echo "A_httprobe completed" | tee -a $path/active/status
-
-#----------spider-------------------#
-gospider -S $path/active/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | tee -a $path/active/spideralloutput | tee -a $path/active/sipderalloutput | grep -a $domain | tee -a $path/passive/spideroutput
-sort -u $path/active/spideroutput -o $path/active/spideroutput
-echo "active spider completed" | tee -a $path/active/status
-
-#-----------sitemap------------------#
-while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/active/upsubdomains | sed 's/$/\/sitemap.xml/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/active/sitemapurl
-echo "active sitemap completed" | tee -a $path/active/status
-
-#------------robot------------------#
-while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/active/upsubdomains | sed 's/$/\/robots.txt/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/active/roboturl
-echo "active roboturl completed" | tee -a $path/active/status
+echo "A_httprobe completed" | tee -a $path/status
 }
 
-URLS(){
+P_URLS(){
 #------------gau--------------------#
 cat $path/target | gau -subs | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | tee -a $path/passive/gaurl 
-echo "passive gau completed" | tee -a $path/passive/status
+echo "gau completed" | tee -a $path/status
 
 #----------waybackurls--------------#
 cat $path/target | waybackurls | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | tee -a $path/passive/gaurl
-echo "passive waybackurls completed" | tee -a $path/passive/status
+echo "waybackurls completed" | tee -a $path/status
 sed -i 's/:80//;s/:443//' $path/passive/gaurl
-echo "passive sed remove :80 :443 completed" | tee -a $path/passive/status
+echo "sed remove :80 :443 completed" | tee -a $path/status
 sort -u $path/passive/gaurl -o $path/passive/gaurl
-echo "passive sort gaurl completed" | tee -a $path/passive/status
+echo "sort gaurl completed" | tee -a $path/status
 ~/tools/my/./link.sh domain $path/passive/gaurl | sort -u | grep -a $domain | tee -a $path/passive/gaurldomain
 #~/tools/my/./cm.sh $path/passive/allsubdomain $path/passive/gaurldomain | sed 's/https*:\/\///' | tee -a $path/passive/allsubdomain
-
-#----------spider-------------------#
-#cat $path/passive/allsubdomain | sed 's/^/https:\/\//' | tee -a $path/passive/spiderinput
-gospider -S $path/passive/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sed 's/\[.*\] \- //' | tee -a $path/passive/sipderalloutput | grep -a $domain | tee -a $path/passive/spideroutput
-sort -u $path/passive/spideroutput -o $path/passive/spideroutput
-echo "passive spider completed" | tee -a $path/passive/status
 
 #-----------commoncrawl-------------#
 curl -sL http://index.commoncrawl.org | grep -a 'href="/CC' | awk -F'"' '{print $2}' | xargs -n1 -I{} curl -sL http://index.commoncrawl.org{}-index?url=*.$domain/* |  awk -F'"url": "' '{print $2}' | cut -d'"' -f1 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | grep -a $domain | sort -u | tee -a $path/passive/commoncrawl1
 sort -u $path/passive/commoncrawl1 -o $path/passive/commoncrawl1
-echo "passive commoncrawl completed" | tee -a $path/passive/status
+echo "commoncrawl completed" | tee -a $path/status
+}
+
+A_URL(){
+#----------spider-------------------#
+#cat $path/passive/allsubdomain | sed 's/^/https:\/\//' | tee -a $path/passive/spiderinput
+gospider -S $path/$1/upsubdomains -c 10 -d 3 | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sed 's/\[.*\] \- //' | tee -a $path/$1/spideralloutput | grep -a $domain | tee -a $path/$1/spideroutput
+sort -u $path/$1/spideroutput -o $path/$1/spideroutput
+echo "$1_spider completed" | tee -a $path/status
 
 #-----------sitemap------------------#
-while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/passive/upsubdomains | sed 's/$/\/sitemap.xml/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/passive/sitemapurl
-echo "passive sitemap completed" | tee -a $path/passive/status
+while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/$1/upsubdomains | sed 's/$/\/sitemap.xml/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/$1/sitemapurl
+echo "$1_sitemap completed" | tee -a $path/status
 
 #------------robot------------------#
-while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/passive/upsubdomains | sed 's/$/\/robots.txt/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/passive/roboturl
-echo "passive roboturl completed" | tee -a $path/passive/status
+while read i; do echo $i | ~/tools/my/./link.sh domain-path | grep -a $domain ; done < <(cat $path/$1/upsubdomains | sed 's/$/\/robots.txt/' | ~/tools/my/./jstool.js -curl) | ~/tools/my/./pygrep.py urldc | ~/tools/my/./pygrep.py htmldc | sort -u | tee -a $path/$1/roboturl
+echo "$1_roboturl completed" | tee -a $path/status
 }
+
 
 WORDLIST(){
 $2 | sed 's/'$domain.*'//; s/https*:\/\/\**//g; s/\./\n/g; s/[^[:alnum:]\_\-]/\n/g'  | sort -u | tee -a $path/$1/subwordlist | tee -a $path/wordlist/tarwordlist
@@ -164,11 +153,11 @@ $2 | sed 's/https*:\/\/.*'$domain'//g; s/\?.*//; s/[^[:alnum:]\.\_\-]/\n/g' | aw
 $2 | grep -oa '\?.*' | grep -Eao "\?[a-zA-Z0-9]*[^\=]+|\&[a-zA-Z0-9]*[^\=]+" | sed 's/\+//g; s/[^[:alnum:]\?\&\_\-]/\n/g' | sort -u | tee -a $path/$1/parameterwordlist
 ~/tools/my/./cm.sh $path/allsubdomain $path/$1/filewordlist_temp | tee -a $path/$1/filewordlist 
 rm $path/$1/filewordlist_temp
-echo "$1 wordlists completed" | tee -a $path/$1/status
+echo "$1_wordlists completed" | tee -a $path/status
 
 cat $path/$1/upsubdomains | ~/tools/my/./jstool.js -curl | tok | sort -u | grep -xavf ~/tools/my/files/filterwords | grep -xavf $path/wordlist/tarwordlist | sed '/^[[:space:]]*$/d' | tee -a $path/wordlist/tarallwords
 sort -u $path/wordlist/tarwordlist -o $path/wordlist/tarwordlist 
-echo "$1 tarallwords completed" | tee -a $path/$1/status
+echo "$1_tarallwords completed" | tee -a $path/status
 
 }
 
@@ -224,8 +213,10 @@ else
 		IP
 		ASN
 		P_SUBDOMAIN
-		URLS
-		WORDLIST
+		P_URLS
+		A_URLS passive
+		WORDLIST passive "cat $path/passive/allsubdomain $path/passive/gaurl $path/passive/sitemapurl $path/passive/roboturl $path/passive/commoncrawl1 $path/passive/spideroutput"
+
 	elif [ $1 == active ]
 	then 
 		domain=$2
@@ -233,10 +224,12 @@ else
 		path=~/bug/$domain
 		mkdir $path/active
 		mkdir $path/wordlist
-		echo $domain | tee -a $path/active/allsubdomain | tee $path/target
+		echo $domain | tee $path/target
 		IP
 		ASN
 		A_SUBDOMAIN
+		A_URLS active
+		WORDLIST active "cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput"
 	elif [ $1 == all ]
 	then
 		domain=$2
@@ -245,14 +238,16 @@ else
 		mkdir $path/active
 		mkdir $path/passive
 		mkdir $path/wordlist
-		echo $domain | tee -a $path/passive/allsubdomain | tee -a $path/active/allsubdomain | tee $path/target
+		echo $domain | tee -a $path/passive/allsubdomain | tee $path/target
 		IP
 		ASN	
 		P_SUBDOMAIN
-		URLS
-		WORDLIST passive 'cat $path/passive/allsubdomain $path/passive/gaurl $path/passive/sitemapurl $path/passive/roboturl $path/passive/commoncrawl1 $path/passive/spideroutput'
+		P_URLS
+		A_URLS passive
+		WORDLIST passive "cat $path/passive/allsubdomain $path/passive/gaurl $path/passive/sitemapurl $path/passive/roboturl $path/passive/commoncrawl1 $path/passive/spideroutput"
 		A_SUBDOMAIN
-		WORDLIST active 'cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput'
+		A_URLS active
+		WORDLIST active "cat $path/active/allsubdomain $path/active/sitemapurl $path/active/roboturl $path/active/spideroutput"
 	elif [ $1 == single ]
 	then
 		domain=$2
@@ -263,8 +258,10 @@ else
 		mkdir $path/passive
 		mkdir $path/wordlist
 		echo $domain | tee $path/passive/allsubdomain | tee $path/target
-		echo $domain | tee $path/upsubdomains
-		URLS
-		WORDLIST		
+		echo "https://$domain" | tee $path/upsubdomains
+		P_URLS
+		A_URLS passive
+		WORDLIST passive "cat $path/passive/allsubdomain $path/passive/gaurl $path/passive/sitemapurl $path/passive/roboturl $path/passive/commoncrawl1 $path/passive/spideroutput"
+		
 	fi
 fi
