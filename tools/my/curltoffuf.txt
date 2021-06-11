@@ -1,4 +1,0 @@
-curl -i -s -k -X $'GET' \
-    -H $'Host: ac401f661eca497580aaa2a7002b00f6.web-security-academy.net' -H $'Connection: close' -H $'Cache-Control: max-age=0' -H $'sec-ch-ua: \"Google Chrome\";v=\"89\", \"Chromium\";v=\"89\", \";Not A Brand\";v=\"99\"' -H $'sec-ch-ua-mobile: ?0' -H $'Upgrade-Insecure-Requests: 1' -H $'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36' -H $'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' -H $'Sec-Fetch-Site: none' -H $'Sec-Fetch-Mode: navigate' -H $'Sec-Fetch-User: ?1' -H $'Sec-Fetch-Dest: document' -H $'Accept-Encoding: gzip, deflate' -H $'Accept-Language: en-US,en;q=0.9,kn;q=0.8' \
-    -b $'session=5J5nOv9joBNrwRBh0qBZSR54PtAomoxO' \
-    $'https://ac401f661eca497580aaa2a7002b00f6.web-security-academy.net/admin'
